@@ -1,5 +1,5 @@
-﻿// Based on RouteTable - a tiny hash router v0.3.2
-// (c) Greg Allen 2013 - http://projects.jga.me/RouteTable
+﻿// Based on routie - a tiny hash router v0.3.2
+// (c) Greg Allen 2013 - http://projects.jga.me/routie
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
 
 define(function () {

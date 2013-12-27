@@ -60,7 +60,7 @@
     <Content Include="scripts\puzzle\knockout-amd-module.js" />
     <Content Include="scripts\puzzle\knockout-amd-template-engine.js" />
     <Content Include="scripts\puzzle\routing.js" />
-    <Content Include="app\start.js" />
+    <Content Include="app\init.js" />
     <Content Include="app\modules\app.js" />
     <Content Include="app\modules\main.js" />
     <Content Include="app\modules\settings.js" />
