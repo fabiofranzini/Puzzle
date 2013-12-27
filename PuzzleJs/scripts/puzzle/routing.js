@@ -1,22 +1,11 @@
-﻿define(function () {
+﻿// Based on RouteTable - a tiny hash router v0.3.2
+// (c) Greg Allen 2013 - http://projects.jga.me/RouteTable
+// License: MIT (http://www.opensource.org/licenses/mit-license.php)
+
+define(function () {
     var w = window;
-
-    /*!
-     * routie - a tiny hash router
-     * v0.3.2
-     * http://projects.jga.me/routie
-     * copyright Greg Allen 2013
-     * MIT License
-    */
-
-    // *** MODIFIED ***
-    //    (function(w) {
-    // *** MODIFIED ***
-
     var routes = [];
     var map = {};
-    var reference = "routie";
-    var oldReference = w[reference];
 
     var Route = function (path, name) {
         this.name = name;
@@ -27,11 +16,9 @@
         this.regex = pathToRegexp(this.path, this.keys, false, false);
 
     };
-
     Route.prototype.addHandler = function (fn) {
         this.fns.push(fn);
     };
-
     Route.prototype.removeHandler = function (fn) {
         for (var i = 0, c = this.fns.length; i < c; i++) {
             var f = this.fns[i];
@@ -41,13 +28,11 @@
             }
         }
     };
-
     Route.prototype.run = function (params) {
         for (var i = 0, c = this.fns.length; i < c; i++) {
             this.fns[i].apply(this, params);
         }
     };
-
     Route.prototype.match = function (path, params) {
         var m = this.regex.exec(path);
 
@@ -67,7 +52,6 @@
 
         return true;
     };
-
     Route.prototype.toURL = function (params) {
         var path = this.path;
         for (var param in params) {
@@ -78,6 +62,56 @@
             throw new Error('missing parameters for url: ' + path);
         }
         return path;
+    };
+
+    var RouteTable = function (path, fn) {
+        if (typeof fn == 'function') {
+            addHandler(path, fn);
+            RouteTable.reload();
+        } else if (typeof path == 'object') {
+            for (var p in path) {
+                addHandler(p, path[p]);
+            }
+            RouteTable.reload();
+        } else if (typeof fn === 'undefined') {
+            RouteTable.navigate(path);
+        }
+    };
+    RouteTable.lookup = function (name, obj) {
+        for (var i = 0, c = routes.length; i < c; i++) {
+            var route = routes[i];
+            if (route.name == name) {
+                return route.toURL(obj);
+            }
+        }
+    };
+    RouteTable.remove = function (path, fn) {
+        var route = map[path];
+        if (!route)
+            return;
+        route.removeHandler(fn);
+    };
+    RouteTable.removeAll = function () {
+        map = {};
+        routes = [];
+    };
+    RouteTable.navigate = function (path, options) {
+        options = options || {};
+        var silent = options.silent || false;
+
+        if (silent) {
+            removeListener();
+        }
+        setTimeout(function () {
+            window.location.hash = path;
+
+            if (silent) {
+                setTimeout(function () {
+                    addListener();
+                }, 1);
+            }
+
+        }, 1);
     };
 
     var pathToRegexp = function (path, keys, sensitive, strict) {
@@ -97,7 +131,6 @@
           .replace(/\*/g, '(.*)');
         return new RegExp('^' + path + '$', sensitive ? '' : 'i');
     };
-
     var addHandler = function (path, fn) {
         var s = path.split(' ');
         var name = (s.length == 2) ? s[0] : null;
@@ -109,70 +142,9 @@
         }
         map[path].addHandler(fn);
     };
-
-    var routie = function (path, fn) {
-        if (typeof fn == 'function') {
-            addHandler(path, fn);
-            routie.reload();
-        } else if (typeof path == 'object') {
-            for (var p in path) {
-                addHandler(p, path[p]);
-            }
-            routie.reload();
-        } else if (typeof fn === 'undefined') {
-            routie.navigate(path);
-        }
-    };
-
-    routie.lookup = function (name, obj) {
-        for (var i = 0, c = routes.length; i < c; i++) {
-            var route = routes[i];
-            if (route.name == name) {
-                return route.toURL(obj);
-            }
-        }
-    };
-
-    routie.remove = function (path, fn) {
-        var route = map[path];
-        if (!route)
-            return;
-        route.removeHandler(fn);
-    };
-
-    routie.removeAll = function () {
-        map = {};
-        routes = [];
-    };
-
-    routie.navigate = function (path, options) {
-        options = options || {};
-        var silent = options.silent || false;
-
-        if (silent) {
-            removeListener();
-        }
-        setTimeout(function () {
-            window.location.hash = path;
-
-            if (silent) {
-                setTimeout(function () {
-                    addListener();
-                }, 1);
-            }
-
-        }, 1);
-    };
-
-    routie.noConflict = function () {
-        w[reference] = oldReference;
-        return routie;
-    };
-
     var getHash = function () {
         return window.location.hash.substring(1);
     };
-
     var checkRoute = function (hash, route) {
         var params = [];
         if (route.match(hash, params)) {
@@ -181,8 +153,7 @@
         }
         return false;
     };
-
-    var hashChanged = routie.reload = function () {
+    var hashChanged = RouteTable.reload = function () {
         var hash = getHash();
         for (var i = 0, c = routes.length; i < c; i++) {
             var route = routes[i];
@@ -191,7 +162,6 @@
             }
         }
     };
-
     var addListener = function () {
         if (w.addEventListener) {
             w.addEventListener('hashchange', hashChanged, false);
@@ -199,7 +169,6 @@
             w.attachEvent('onhashchange', hashChanged);
         }
     };
-
     var removeListener = function () {
         if (w.removeEventListener) {
             w.removeEventListener('hashchange', hashChanged);
@@ -207,13 +176,8 @@
             w.detachEvent('onhashchange', hashChanged);
         }
     };
+
     addListener();
 
-    w[reference] = routie;
-
-    // *** MODIFIED ***
-    //})(window);
-    // *** MODIFIED ***
-
-    return routie;
+    return RouteTable;
 });
